@@ -32,7 +32,7 @@ def get_car_by_id(car_id : int, db : Session = Depends(get_session)):
 def update_car(car_id : int, car : CarUpdate, db : Session = Depends(get_session)):
     car_db = db.exec(select(Car).where(Car.id == car_id)).first()
 
-    car_db.available = car.avillible
+    car_db.available = car.available
     car_db.number = car.number
     db.commit()
     db.refresh(car_db)

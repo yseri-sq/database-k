@@ -5,7 +5,7 @@ class UserReg(BaseModel):
     email : EmailStr
     hash_password : str
     phone_number : str
-    driver_lisence_number : int
+    driver_license_number : str
 
 class UserLog(BaseModel):
     email : EmailStr
@@ -28,7 +28,7 @@ class CarAdd(BaseModel):
 
 class CarUpdate(BaseModel):
     number : str
-    avillible : bool
+    available : bool
 
 class CarGet(BaseModel):
     brand : str
@@ -37,10 +37,10 @@ class CarGet(BaseModel):
 
 
 class LocationAdd(BaseModel):
-    adress : str
+    address : str
 
 class LocationUpdate(BaseModel):
-    adress : str
+    address : str
 
 class LocationGet(BaseModel):
-    adress : str
+    address : str
