@@ -1,69 +1,75 @@
 from datetime import date
 from typing import List, Optional
-
 from pydantic import EmailStr
-from sqlmodel import Field, Relationship, Session, SQLModel, select
-
-
-class Rental(SQLModel, table=True):
-    id : Optional[int] = Field(default=None, primary_key=True)
-    user_id : Optional[int] = Field(foreign_key="user.id")
-    car_id : Optional[int] = Field(foreign_key="car.id")
-    date : date
-
+from sqlmodel import Field, Relationship, SQLModel
 
 class User(SQLModel, table=True):
-    id : Optional[int] = Field(default=None, primary_key=True)
-    name : str
+    id: Optional[int] = Field(primary_key=True, default=None)
+    FIO: str
     email: EmailStr
-    hash_password : str
-    phone_number : str
-    driver_license_number : str
-    role :  str = Field(default="user")
-
-    cars : List["Car"] = Relationship(back_populates="users", link_model=Rental)
-
-
-class Car(SQLModel, table=True):
-    id : Optional[int] = Field(default=None, primary_key=True, index=True)
-    category_id : Optional[int] = Field(foreign_key="category.id")
-    brand : str
-    model : str
-    number : str
-    available : bool = True
-
-    category : Optional["Category"] = Relationship(back_populates="cars")
-    users : List["User"] = Relationship(back_populates="cars", link_model=Rental)
-
-class CarInfo(SQLModel, table=True):
-    __tablename__ = "car_price"
-    id : Optional[int] = Field(primary_key=True)
-    brand : str
-    model : str
-    price : int
-
-
-class Category(SQLModel, table=True):
-    id : Optional[int] = Field(default=None, primary_key=True)
-    classification : str
-    price : float
+    phone: str
+    passport: str
+    date_birth: date
     
-    cars : List["Car"] = Relationship(back_populates="category")
+    bookings: List["Booking"] = Relationship(back_populates="user")
 
-    @classmethod
-    def set_categories(cls, db : Session):
-        categories = [
-            ("Эконом", 1000.0),
-            ("Комфорт", 2000.0),
-            ("Бизнес", 3500.0)]
+class Hotel(SQLModel, table=True):
+    id: Optional[int] = Field(primary_key=True, default=None)
+    name: str
+    address: str
+    
+    rooms: List["Room"] = Relationship(back_populates="hotel")
 
-        for classification, price in categories:
-            exist = db.exec(select(cls).where(cls.classification == classification)).first()
-            if not exist:
-                db.add(cls(classification=classification, price=price))
-                db.commit()
+class RoomTypes(SQLModel, table=True):
+    id: Optional[int] = Field(primary_key=True, default=None)
+    name: str
+    description: str
+    capacity: int
+    price: int
+    
+    rooms: List["Room"] = Relationship(back_populates="room_type")
 
+class Room(SQLModel, table=True):
+    id: Optional[int] = Field(primary_key=True, default=None)
+    number: str
+    status: str = "free"
+    
+    hotel_id: int = Field(foreign_key="hotel.id")
+    hotel: Hotel = Relationship(back_populates="rooms")
+    
+    type_id: int = Field(foreign_key="roomtypes.id")
+    room_type: RoomTypes = Relationship(back_populates="rooms")
+    
+    bookings: List["Booking"] = Relationship(back_populates="room")
 
-class Location(SQLModel, table=True):
-    id : Optional[int] = Field(default=None, primary_key=True)
-    address : str
+class Booking(SQLModel, table=True):
+    id: Optional[int] = Field(primary_key=True, default=None)
+    check_in: date
+    check_out: date
+    total_price: int
+    status: str = "confirmed"
+    
+    user_id: int = Field(foreign_key="user.id")
+    user: User = Relationship(back_populates="bookings")
+    
+    room_id: int = Field(foreign_key="room.id")
+    room: Room = Relationship(back_populates="bookings")
+    
+    service_orders: List["ServiceOrder"] = Relationship(back_populates="booking")
+
+class Service(SQLModel, table=True):
+    id: Optional[int] = Field(primary_key=True, default=None)
+    name: str
+    price: int
+    
+    orders: List["ServiceOrder"] = Relationship(back_populates="service")
+
+class ServiceOrder(SQLModel, table=True):
+    id: Optional[int] = Field(primary_key=True, default=None)
+    quantity: int = 1
+    
+    booking_id: int = Field(foreign_key="booking.id")
+    booking: Booking = Relationship(back_populates="service_orders")
+    
+    service_id: int = Field(foreign_key="service.id")
+    service: Service = Relationship(back_populates="orders")

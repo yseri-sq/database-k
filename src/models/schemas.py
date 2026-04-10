@@ -1,61 +1,76 @@
 from pydantic import BaseModel, EmailStr
+from datetime import date
+from typing import Optional
 
 class UserReg(BaseModel):
-    name : str
-    email : EmailStr
-    hash_password : str
-    phone_number : str
-    driver_license_number : str
-
-class UserLog(BaseModel):
-    email : EmailStr
-    hash_password : str
+    FIO: str
+    email: EmailStr
+    phone: str
+    passport: str
+    date_birth: date
 
 class UserGet(BaseModel):
-    name : str
-    email : EmailStr
+    id: int
+    FIO: str
+    email: EmailStr
 
 class UserUpdate(BaseModel):
-    email : EmailStr
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
 
+class RoomAdd(BaseModel):
+    number: str
+    hotel_id: int
+    type_id: int
 
-class CarAdd(BaseModel):
-    category_id : int
-    brand : str
-    model : str
-    number : str
-    available : bool
+class RoomGet(BaseModel):
+    id: int
+    number: str
+    status: str
+    type_name: str # Чтобы сразу видеть "Люкс" вместо ID
 
-class CarUpdate(BaseModel):
-    number : str
-    available : bool
+class RoomTypeAdd(BaseModel):
+    name: str
+    description: str
+    capacity: int
+    price: int
 
-class CarGet(BaseModel):
-    id : int
-    brand : str
-    model : str
-    number : str    
+class BookingAdd(BaseModel):
+    user_id: int
+    room_id: int
+    check_in: date
+    check_out: date
 
-class CarByCategory(BaseModel):
-    category : str
-    brand : str
-    model : str
-    number : str
+class BookingGet(BaseModel):
+    id: int
+    user_fio: str
+    room_number: str
+    check_in: date
+    check_out: date
+    total_price: int
+    status: str
 
-class CarCountByCategory(BaseModel):
-    category : str
-    car_count : int
+class BookingUpdateStatus(BaseModel):
+    status: str # Например: "cancelled" или "finished"
 
-class LocationAdd(BaseModel):
-    address : str
+class ServiceAdd(BaseModel):
+    name: str
+    price: int
 
-class LocationUpdate(BaseModel):
-    address : str
+class ServiceOrderAdd(BaseModel):
+    booking_id: int
+    service_id: int
+    quantity: int = 1
 
-class LocationGet(BaseModel):
-    address : str
+class ServiceGet(BaseModel):
+    name: str
+    price: int
 
-class CategoryGet(BaseModel):
-    id : int
-    classification : str
-    price : float
+class HotelAdd(BaseModel):
+    name: str
+    address: str
+
+class HotelGet(BaseModel):
+    id: int
+    name: str
+    address: str
