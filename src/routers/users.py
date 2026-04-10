@@ -37,33 +37,6 @@ def auth(user : UserLog, db : Session = Depends(get_session)):
     
     return f"Добро пожаловать, {user_db.name}"
 
-@router.post("/{user_id}/cars/{car_id}", summary="Арендовать машину")
-def rental_car(user_id : int, car_id : int, db : Session = Depends(get_session)):
-    car_db = db.exec(select(Car).where(Car.id == car_id)).first()
-    user_db = db.exec(select(User).where(User.id == user_id)).first()
-
-    if not user_db:
-        raise HTTPException(404, "Пользователь не найден")
-    
-    if not car_db:
-        raise HTTPException(404, "Машина не найдена")
-
-    if not car_db.available:
-        raise HTTPException(400, "Машина недоступна для аренды")
-    
-    new_rental = Rental(
-        user_id=user_id,
-        car_id=car_id,
-        date=date.today()
-    )
-    
-    car_db.available = False
-
-    db.add(new_rental)
-    db.commit()
-
-    return f"Машина: '{car_db.brand} {car_db.model}' арендована"
-
 @router.get("/", response_model=List[UserGet], summary="Получить список всех пользователей")
 def get_all_users(db : Session = Depends(get_session)):
     users = db.exec(select(User)).all()
