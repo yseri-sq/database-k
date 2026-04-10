@@ -5,9 +5,14 @@ from typing import Optional
 class UserReg(BaseModel):
     FIO: str
     email: EmailStr
+    hash_password : str
     phone: str
     passport: str
     date_birth: date
+
+class UserLog(BaseModel):
+    email : EmailStr
+    hash_password : str
 
 class UserGet(BaseModel):
     id: int
@@ -21,19 +26,23 @@ class UserUpdate(BaseModel):
 class RoomAdd(BaseModel):
     number: str
     hotel_id: int
+    price : int
     type_id: int
 
 class RoomGet(BaseModel):
     id: int
     number: str
     status: str
-    type_name: str # Чтобы сразу видеть "Люкс" вместо ID
+    type_name: str
 
 class RoomTypeAdd(BaseModel):
     name: str
-    description: str
-    capacity: int
     price: int
+
+class RoomUpdate(BaseModel):
+    number : str
+    price : int
+    
 
 class BookingAdd(BaseModel):
     user_id: int
@@ -74,3 +83,7 @@ class HotelGet(BaseModel):
     id: int
     name: str
     address: str
+
+class HotelUpdate(BaseModel):
+    name: Optional[str] = None
+    address: Optional[str] = None

@@ -7,10 +7,12 @@ class User(SQLModel, table=True):
     id: Optional[int] = Field(primary_key=True, default=None)
     FIO: str
     email: EmailStr
+    hash_password : str
     phone: str
     passport: str
     date_birth: date
-    
+    role: str = Field(default="user") 
+
     bookings: List["Booking"] = Relationship(back_populates="user")
 
 class Hotel(SQLModel, table=True):
@@ -32,6 +34,7 @@ class RoomTypes(SQLModel, table=True):
 class Room(SQLModel, table=True):
     id: Optional[int] = Field(primary_key=True, default=None)
     number: str
+    price : int
     status: str = "free"
     
     hotel_id: int = Field(foreign_key="hotel.id")
