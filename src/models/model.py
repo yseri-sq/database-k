@@ -48,7 +48,7 @@ class Room(SQLModel, table=True):
 class Booking(SQLModel, table=True):
     id: Optional[int] = Field(primary_key=True, default=None)
     check_in: date
-    check_out: date
+    check_out: Optional[date] = Field(default=None)
     total_price: int
     status: str = "confirmed"
     

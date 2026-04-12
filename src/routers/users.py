@@ -5,8 +5,8 @@ from sqlmodel import Session, select
 from datetime import date
 
 from db.db import get_session
-from models.model import User
-from models.schemas import UserReg, UserGet, UserUpdate, UserLog
+from models.model import User, Room, Booking
+from models.schemas import UserReg, UserGet, UserUpdate, UserLog, BookingAdd
 from security.security import hash_password, verify_password
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -30,9 +30,7 @@ def auth(user: UserLog, db: Session = Depends(get_session)):
     if not user_db or not verify_password(user.hash_password, user_db.hash_password):
         raise HTTPException(status_code=401, detail="Неверный email или пароль")
     
-    # Логика с админом (лучше хранить роль в БД изначально)
     if user_db.email == "admin@example.com":
-        # Убедись, что в модели User есть поле role
         user_db.role = "admin" 
     
         db.add(user_db)
@@ -41,6 +39,46 @@ def auth(user: UserLog, db: Session = Depends(get_session)):
         current_user = user_db
     return {"message": f"Добро пожаловать, {user_db.FIO}", "user_id": user_db.id}
 
+@router.post("/{user_id}/room/{room_id}")
+def order(user_id: int, room_id: int, db: Session = Depends(get_session)):
+    room_db = db.exec(select(Room).where(Room.id == room_id)).first()
+    user_db = db.exec(select(User).where(User.id == user_id)).first()
+    
+    if not room_db or not user_db:
+        raise HTTPException(404, "User or room not found")
+    
+    if room_db.status.strip().lower() != "free":
+        raise HTTPException(status_code=400, detail="Room is not free")
+
+    
+    new_order = Booking(
+    user_id=user_id,
+    room_id=room_id,
+    total_price=room_db.price,
+    check_in=date.today(),
+    check_out=date.today(), #костыль
+    )
+
+    room_db.status = "busy"
+    
+    db.add(new_order)
+    db.add(room_db)
+    db.commit()
+    
+    return f"Room {room_db.number} rented successfully"
+
+@router.get("/order")
+def get_all_order(db: Session = Depends(get_session)):
+    orders = db.exec(select(Booking)).all()
+    return orders
+
+@router.get("/order/{user_id}")
+def get_odred_user(user_id: int, db: Session = Depends(get_session)):
+    orders = db.exec(select(Booking).where(Booking.user_id == user_id)).all()
+    if not orders:
+        raise HTTPException(404, "Not found")
+    return orders
+    
 @router.get("/", response_model=List[UserGet], summary="Получить список всех пользователей")
 def get_all_users(db : Session = Depends(get_session)):
     users = db.exec(select(User)).all()
@@ -54,7 +92,6 @@ def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_sessio
     if not user_db:
         raise HTTPException(404, "Пользователь не найден")
     
-    # Исправлено: обращение к FIO вместо name
     user_db.email = user.email if user.email else user_db.email
     user_db.phone = user.phone if user.phone else user_db.phone
     

@@ -6,7 +6,7 @@ from db.db import get_session
 from models.model import Hotel
 from models.schemas import HotelAdd, HotelGet, HotelUpdate
 
-router = APIRouter(prefix="/locations", tags=["Locations"])
+router = APIRouter(prefix="/hotels", tags=["Hotel"])
 
 @router.post("/add", response_model=HotelGet, summary="Добавить новый отель/офис")
 def add_location(location: HotelAdd, db: Session = Depends(get_session)):
